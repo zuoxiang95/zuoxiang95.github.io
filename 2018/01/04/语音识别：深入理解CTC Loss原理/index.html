@@ -1,0 +1,255 @@
+<!DOCTYPE html><html lang="zn-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>语音识别：深入理解CTC Loss原理 | 秃头少年的boke</title><meta name="description" content="&amp;emsp;&amp;emsp;最近看了百度的Deep Speech，看到语音识别使用的损失函数是CTC loss。便整理了一下有关于CTC loss的一些定义和推导。由于个人水平有限，如果文章有错误，还恳请各位指出，万分感谢~ 1. 背景介绍&amp;emsp;&amp;emsp;在传统的语音识别的模型中，我们对语音模型进行训练之前，往往都要将文本与语音进行严格的对齐操作。这样就有两点不太好：  严格对齐要花费人力、时"><meta name="author" content="左左左左想"><meta name="copyright" content="左左左左想"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2018/01/04/%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3CTC%20Loss%E5%8E%9F%E7%90%86/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="语音识别：深入理解CTC Loss原理"><meta property="og:url" content="http://example.com/2018/01/04/%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3CTC%20Loss%E5%8E%9F%E7%90%86/"><meta property="og:site_name" content="秃头少年的boke"><meta property="og:description" content="&amp;emsp;&amp;emsp;最近看了百度的Deep Speech，看到语音识别使用的损失函数是CTC loss。便整理了一下有关于CTC loss的一些定义和推导。由于个人水平有限，如果文章有错误，还恳请各位指出，万分感谢~ 1. 背景介绍&amp;emsp;&amp;emsp;在传统的语音识别的模型中，我们对语音模型进行训练之前，往往都要将文本与语音进行严格的对齐操作。这样就有两点不太好：  严格对齐要花费人力、时"><meta property="og:image" content="http://example.com/null"><meta property="article:published_time" content="2018-01-04T07:57:00.000Z"><meta property="article:modified_time" content="2018-01-04T07:57:00.000Z"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  bookmark: {
+    message_prev: 'Press',
+    message_next: 'to bookmark this page'
+  },
+  runtime: '',
+  date_suffix: {"one_hour":"Just","hours":"hours ago","day":"days ago"},
+  copyright: undefined,
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+    },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2018-01-04 15:57:00'
+}</script><noscript><style type="text/css">
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+  }
+}
+
+var autoChangeMode = 'false'
+var t = saveToLocal.get('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (saveToLocal.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/null" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">Articles</div><div class="length_num">12</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">Categories</div><div class="length_num">4</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.</span> <span class="toc-text">1. 背景介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BB%8E%E8%BE%93%E5%87%BA%E5%88%B0%E6%A0%87%E7%AD%BE"><span class="toc-number">2.</span> <span class="toc-text">2. 从输出到标签</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1%E7%AC%A6%E5%8F%B7%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="toc-number">2.1.</span> <span class="toc-text">2.1符号的表示</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%A9%BA%E6%A0%BC%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 空格的作用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD%E4%B8%8E%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD"><span class="toc-number">3.</span> <span class="toc-text">3. 前向传播与反向传播</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1%E5%89%8D%E5%90%91%E4%BC%A0%E6%92%AD"><span class="toc-number">3.1.</span> <span class="toc-text">3.1前向传播</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD"><span class="toc-number">3.2.</span> <span class="toc-text">3.2反向传播</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">4.</span> <span class="toc-text">5.参考文献</span></a></li></ol></div></div></div><header class="post-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">秃头少年的boke</a></span><span id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">语音识别：深入理解CTC Loss原理</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2018-01-04T07:57:00.000Z" title="Created 2018-01-04 15:57:00">2018-01-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2018-01-04T07:57:00.000Z" title="Updated 2018-01-04 15:57:00">2018-01-04</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>&emsp;&emsp;最近看了百度的Deep Speech，看到语音识别使用的损失函数是CTC loss。便整理了一下有关于CTC loss的一些定义和推导。由于个人水平有限，如果文章有错误，还恳请各位指出，万分感谢~</p>
+<h2 id="1-背景介绍"><a href="#1-背景介绍" class="headerlink" title="1. 背景介绍"></a>1. 背景介绍</h2><p>&emsp;&emsp;在传统的语音识别的模型中，我们对语音模型进行训练之前，往往都要将文本与语音进行严格的对齐操作。这样就有两点不太好：</p>
+<ol>
+<li>严格对齐要花费人力、时间。</li>
+<li>严格对齐之后，模型预测出的label只是局部分类的结果，而无法给出整个序列的输出结果，往往要对预测出的label做一些后处理才可以得到我们最终想要的结果。</li>
+</ol>
+<p>&emsp;&emsp;虽然现在已经有了一些比较成熟的开源对齐工具供大家使用，但是随着deep learning越来越火，有人就会想，能不能让我们的网络自己去学习对齐方式呢？因此CTC（Connectionist temporal classification）就应运而生啦。</p>
+<p>&emsp;&emsp;想一想，为什么CTC就不需要去对齐语音和文本呢？因为CTC它允许我们的神经网络在任意一个时间段预测label，只有一个要求：就是输出的序列顺序只要是正确的就ok啦~这样我们就不在需要让文本和语音严格对齐了，而且CTC输出的是整个序列标签，因此也不需要我们再去做一些后处理操作。</p>
+<p>&emsp;&emsp;对一段音频使用CTC和使用文本对齐的例子如下图所示：</p>
+<center>![这里写图片描述](http://img.blog.csdn.net/20170730100057611?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvTGVmdF9UaGluaw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+
+<h2 id="2-从输出到标签"><a href="#2-从输出到标签" class="headerlink" title="2. 从输出到标签"></a>2. 从输出到标签</h2><h3 id="2-1符号的表示"><a href="#2-1符号的表示" class="headerlink" title="2.1符号的表示"></a>2.1符号的表示</h3><p>&emsp;&emsp;接下来，我们要对一些符号的定义进行介绍。由于水平有限，看这部分定义介绍的时候绕在里面很久，可能有些理解有误，还恳请各位大大及时指出~</p>
+<ol>
+<li><p>$y^t_k $：代表输出序列在第t步的输出为k的概率。举个简单的例子：当输出的序列为（a-ab-）时，$y^3_a $ 代表了在第3步输出的字母为a的概率；</p>
+</li>
+<li><p>$p(\pi \mid x)$：代表了给定输入x，输出路径为 $\pi$ 的概率；</p>
+<p>由于假设在每一个时间步输出的label的概率都是相互独立的，那么 $p(\pi \mid x)$ 用公式来表示为 $p(\pi \mid x) =\prod_{t=1}^T (y^t_k) $，可以理解为每一个时间步输出路径 $\pi$ 的相应label的概率的乘积。</p>
+</li>
+<li><p>$\mathscr{F}$：代表一种多对一的映射，将输出路径 $\pi$ 映射到 标签序列 $l$ 的一种变换</p>
+<p>举个简单的例子 $\mathscr{F}(a-ab-) = \mathscr{F}(-aa–abb)=aab$ （其中-代表了空格）</p>
+</li>
+<li><p>$p(l \mid x)$ ：代表给定输入x，输出为序列 $l$ 的概率。</p>
+<p>因此输出的序列为 $l$ 的概率可以表示为所有输出的路径 $\pi$ 映射后的序列为 $l$ 的概率之和，用公式表示为 $p(l \mid x) = \sum_{\pi\in{\mathscr{F}^{-1}(l)}}p(\pi \mid x)$</p>
+</li>
+</ol>
+<h3 id="2-2-空格的作用"><a href="#2-2-空格的作用" class="headerlink" title="2.2 空格的作用"></a>2.2 空格的作用</h3><p>&emsp;&emsp;在最开始的CTC设定中是没有空格的，$\mathscr{F}$ 只是简单的移除了连续的相同字母。但是这样会产生两个问题：</p>
+<ol>
+<li>无法预测出连续两个相同的字母的单词了，比如说hello这个单词，在CTC中会删除掉连续相同的字母，因此CTC最后预测出的label应该是helo；</li>
+<li>无法预测出一句完整的话，而只能预测单个的单词。因为缺乏空格，CTC无法表示出单词与单词之间停顿的部分，因此只能预测出单个单词，或者将一句话中的单词全部连接起来了；</li>
+</ol>
+<p>因此，空格在CTC中的作用还是十分重要的。</p>
+<h2 id="3-前向传播与反向传播"><a href="#3-前向传播与反向传播" class="headerlink" title="3. 前向传播与反向传播"></a>3. 前向传播与反向传播</h2><h3 id="3-1前向传播"><a href="#3-1前向传播" class="headerlink" title="3.1前向传播"></a>3.1前向传播</h3><p>&emsp;&emsp;在对符号做了一些定义之后，我们接下来看看CTC的前向传播的过程。我们前向传播就是要去计算 $p(l \mid x)$。由于一个序列 $l$ 通常可以有多条路径经过映射后得到，而随着序列 $l$ 长度的增加，相对应的路径的数目是成指数增加的，因此我们需要一种高效的算法来计算它。</p>
+<p>&emsp;&emsp;有一种类似于HMM的前向传播的算法可以帮助我们来解决这个问题。它的key就是那些与序列 $l$ 对应的路径概率都可以通过迭代来计算得出。</p>
+<p>&emsp;&emsp;在进行计算之前，我们需要对序列 $l$ 做一些预处理，在序列 $l$ 的开头与结尾分别加上空格，并且在字母与字母之间都添加上空格。如果原来序列 $l$ 的长度为U，那么预处理之后，序列 $l{‘}$ 的长度为2U+1 。</p>
+<p>&emsp;&emsp;对于一个特定的序列 $l$ ，我们定义前向变量 $\alpha(t,u)$ 为输出所有长度为 $t$ ，且经过 $\mathscr{F}$ 映射之后为序列 $l$ 的路径的概率之和，用公式表达如下所示：</p>
+<center>  $\alpha(t,u)=\sum\_{\pi \in V(t,u)} \prod\_{i=1}^t y\_{\pi_i}^i$
+
+<p>其中，$V(t,u) = {\pi\in A{‘}^t:\mathscr{F}(\pi)=l_{1:u/2},\pi_t=l{‘}_u}$ 代表了所有满足经过 $\mathscr{F}$ 映射之后为序列 $l$ ，长度为t的路径集合，且在第t时间步的输出为label: $l{‘}_u$。</p>
+<p>&emsp;&emsp;所有正确路径的开头必须是空格或者label $l_1$，因此存在着初始化的约束条件：</p>
+<center>$\alpha(1,1) = y\_b^1$
+$\alpha(1,2) = y\_{l\_1}^1$
+$\alpha(1,u) = 0, \forall u > 2$
+
+<p>也就是当路径长度为1时，它只可能对应到空格或者序列 $l$ 的第一个label，不可能对应到序列 $l$ 第一个之后的label中。</p>
+<p>&emsp;&emsp;因此，$p(l \mid x)$ 可以由前向变量来表示，即为</p>
+<center>$p(l \mid x) = \alpha(T,U{'})+ \alpha(T,U{'}{-1})$
+
+<p>其中$\alpha(T,U{‘})$可以理解为所有路径长度为T，经过 $\mathscr{F}$ 映射之后为序列 $l$ ,且第T时刻的输出的label为：$l{‘}<em>U$ 或者 $l{‘}</em>{U-1}$。也就是路径的最后一个是否包括了空格。</p>
+<p>&emsp;&emsp;怎么去理解它呢？我们不妨先看看它的递归图</p>
+<center>![这里写图片描述](http://img.blog.csdn.net/20170730154625007?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvTGVmdF9UaGluaw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+<p>上图中，白色的点表示一个label，黑色的点表示空格，纵向每一列表示的是路径的长度T（或者时刻T？），箭头代表了路径下一个时刻可以输出到哪个label去。如果在时刻 1 的 label 为空格，那么路径在下一时刻只有两个选择，第一个还是输出空格，第二个就是输出序列 $l$ 中对应的空格的下一个label：C；如果在时刻2的 label 为 C，那么在时刻3，它可以有三种选择：第一种就是输出还是 C，第二种是输出为空格，第三种是直接输出A。</p>
+<p>&emsp;&emsp;从上图可以看出长度为T的输出路径映射到序列 $l：cat$， 可以由第T步为label：T的所有路径和第T步为空格的所有路径的概率之和来表示（注意：并不是所有以空格或者T结束的路径都是对的，这里路径是有限制的，不要忘了初始条件的限制哦）。</p>
+<p>&emsp;&emsp;现在我们要来引出它的递推公式啦，具体公式如下所示：</p>
+<center>$\alpha(t,u)=y\_{l{'}\_u}^t\sum\_{i=f(u)}^u\alpha(t-1,i)$
+
+<p>其中</p>
+<center>$f(u)=
+\begin{cases}
+u-1,  & \text{if $l{'}\_u=blank$ or $l{'}\_{u-2}=l{'}\_u$} \\\\
+u-2, & \text{otherwise}
+\end{cases}
+$
+
+<p>&emsp;&emsp;如何理解这个递推公式呢，很简单，我们可以看上面递推图，就以时刻T为空格的前向变量为例，由于我们之前讲过了如果当前时刻的输出为空格，下一时刻路径输出只有两种可能性，而如果我们当前时刻是空格，上一时刻的输出从图中可以看出也是由两种可能性，一种是在T-1时刻输出为空格，另外一种是在T-1时刻输出为T。因此我们只要计算出T-1时刻输出为空格的所有正确路径的概率之和以及在T-1时刻输出为T的所有路径的概率之和，再乘上T时刻输出为空格的概率 $y_{l{‘}_u}^T$，就可以得到前向变量 $\alpha(t,u)$ 啦。时刻T为label：T的前向变量的求法和空格的类似，只是它由三种可能情况求和再乘上 $y_{l{‘}_u}^T$ 得到的。</p>
+<h3 id="3-2反向传播"><a href="#3-2反向传播" class="headerlink" title="3.2反向传播"></a>3.2反向传播</h3><p>&emsp;&emsp;与前向传播类似，我们首先定义一个反向变量 $\beta(t,u)$，它的含义是从t+1时刻开始，在前向变量 $\alpha(t,u)$ 上添加路径 $\pi{‘}$，使得最后通过 $\mathscr{F}$ 映射之后为序列 $l$ 的概率之和，用公式表示为：</p>
+<center> $\beta(t,u)=\sum\_{\pi \in W(t,u)}\prod\_{i=1}^{T-t}y\_{\pi\_i}^{t+i}$
+
+<p>其中$W(t,u)={\pi \in A’^{T-t}:\mathscr{F}(\pi’+\pi)=l ,\forall\pi’\in V(t,u)}$</p>
+<p>&emsp;&emsp;按照前向传播的图举例说明：假设我们在T-2时刻路径输出为label：A，那么此时的反向变量的求法就是在T-2时刻开始，所有能到达T时刻输出为空格或者label：T的“剩余”路径 $\pi’$ 的概率之和。</p>
+<p>反向传播也有相对应的初始化条件：</p>
+<center> $\beta(T,U')=\beta(T,U'-1)=1$
+$\beta(T,u')=0,\forall u'<U'-1$
+
+<p>它的递推公式如下所示</p>
+<center>$\beta(t,u)=\sum\_{i=u}^{g(u)}\beta(t+1,i)y\_{l'\_i}^{t+1}$
+
+
+<p>其中</p>
+<center>$g(u)=
+\begin{cases}
+u-1,  & \text{if $l{'}\_u=blank$ or $l{'}\_{u-2}=l{'}\_u$} \\\\
+u-2, & \text{otherwise}
+\end{cases}
+$
+### 3.3对数运算
+&emsp;&emsp;不论是在计算前向变量还是反向变量时，都涉及到了大量的概率的乘积。由于这些乘积都是小于1的，在大量的小数相乘时，最后得到的结果往往都会趋向于0，更严重的是产生underflow。因此在计算时对其做了取对数的处理，这样乘法就会转化为加法了，不仅避免了underflow，还简化了计算。但是，原来的加法计算就不是太方便了。不过这里有一个数学的trick：
+<center>$ln(a+b)=lna+ln(1+e^{lnb-lna})$
+## 4.损失函数
+&emsp;&emsp;CTC的损失函数定义如下所示
+<center>$L(S)=-ln\prod\_{(x,z)\in S}p(z|x)=-\sum\_{(x,z)\in S}ln p(z|x)$
+
+<p>其中 $p(z|x)$ 代表给定输入x，输出序列 $z$ 的概率，S为训练集。损失函数可以解释为：给定样本后输出正确label的概率的乘积（这里个人不理解为啥要做乘积运算，求和的话不应该好解释一点么？可能是因为要取对数运算，求和可能不太方便，所以是做乘积运算），再取负对数就是损失函数了。取负号之后我们通过最小化损失函数，就可以使输出正确的label的概率达到最大了。</p>
+<p>&emsp;&emsp;由于上述定义的损失函数是可微的，因此我们可以求出它对每一个权重的导数，然后就可以使用什么梯度下降、Adam之类的算法来进行优化求解啦~</p>
+<p>&emsp;&emsp;下面我们就要把上一节定义的前向变量与反向变量用到我们的损失函数中去，让序列 $l=z$，定义一个新的集合 $X(t,u)={\pi\in A’^T:\mathscr{F}(\pi)=z,\pi_t=z’_u}$ ， $X(t,u)$ 代表了在时刻t经过label：$l’_u$ 的所有路径的集合，这样由之前对前向变量与反向变量的定义，它俩的乘积就可以写成：</p>
+<center>$\alpha(t,u)\beta(t,u)=\sum\_{\pi\in X(t,u)}\prod\_{t=1}^Ty\_{\pi\_t}^t$
+
+<p>而 $p(\pi \mid x) =\prod_{t=1}^T (y^t_k) $，因此进一步转化可以得到</p>
+<center>$\alpha(t,u)\beta(t,u)=\sum_{\pi\in X(t,u)}p(\pi|x)$
+
+<p>因此，对于任意的时刻t，我们给定输入x，输出序列 $z$ 的概率可以表示成</p>
+<center>$p(z \mid x)=\sum_{u=1}^{|z'|}\alpha(t,u)\beta(t,u)$
+
+<p>也就是在任意一个时刻分开，前向变量与反向变量的乘积为在该时刻经过label：$l’_u$ 的所有概率之和，然后再遍历了序列 $l’$ 的每一个label，因此就得到了所有输出为序列 $l’$ 的概率之和。</p>
+<p>&emsp;&emsp;损失函数就可以进一步转化为</p>
+<center>$L(x,z)=-ln\sum_{u=1}^{|z'|}\alpha(t,u)\beta(t,u)$
+### 4.1损失函数梯度计算
+&emsp;&emsp;损失函数关于网络输出 $y_k^t$ 的偏导数为：
+<center>${\partial L(x,z)\over\partial y_k^t}=-{\partial lnp(x|z)\over\partial y_k^t}=-{1\over p(x|z)}{\partial p(x|z)\over\partial y_k^t}$
+
+<p>而 $p(z \mid x)=\sum_{u=1}^{|z’|}\alpha(t,u)\beta(t,u)=\sum_{\pi\in X(t,u)}\prod_{t=1}^Ty_{\pi_t}^t$，我们记label：k出现在序列 $z’$ 的所有路径的集合为$B(z,k)={u:z’_u=k}$，因此可以得出</p>
+<center>${\partial\alpha(t,u)\beta(t,u)\over\partial y_k^t}=
+\begin{cases}
+{\alpha(t,u)\beta(t,u)\over y_k^t},  & \text{if k occurs in z'} \\\\
+0, & \text{otherwise}
+\end{cases}
+$
+
+<p>因此损失函数关于输出的偏导数可以写为</p>
+<center>${\partial L(x,z)\over\partial y\_k^t }=-{1\over p(x|z)}{\partial p(x|z)\over\partial y\_k^t}=-{1\over p(x|z)y\_k^t }\sum\_{u\in B(z,k)}\alpha(t,u)\beta(t,u)$
+
+<p>最后，我们可以通过链式法则，得到损失函数对未经过sofmax层的网络输出的 $a_k^t$ 的偏导数：</p>
+<center>${\partial L(x,z)\over\partial a\_k^t }= -\sum\_{k'}{\partial L(x,z)\over\partial y\_{k'}^t}{\partial y\_{k'}^t \over\partial a\_{k'}^t}$
+
+<p>又有 </p>
+<center>$y\_k^t={e^{a\_k^t}\over\sum\_{k'}e^{a\_k^t}}$
+
+<p>因此可以得到损失函数对未经过sofmax层的网络输出的 $a_k^t$ 的偏导数：</p>
+<center>${\partial L(x,z)\over\partial a\_k^t }=y\_k^t-{1\over p(x|z)}\sum\_{u\in B(z,k)}\alpha(t,u)\beta(t,u)$
+
+
+<h2 id="5-参考文献"><a href="#5-参考文献" class="headerlink" title="5.参考文献"></a>5.参考文献</h2><p>1.<a target="_blank" rel="noopener" href="https://www.cs.toronto.edu/~graves/preprint.pdf">《Supervised Sequence Labelling with Recurrent Neural Networks》 chapter7</a></p>
+<p>2.<a target="_blank" rel="noopener" href="http://blog.csdn.net/xmdxcsj/article/details/51763886">   http://blog.csdn.net/xmdxcsj/article/details/51763886</a></p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">左左左左想</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://example.com/2018/01/04/%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3CTC%20Loss%E5%8E%9F%E7%90%86/">http://example.com/2018/01/04/%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3CTC%20Loss%E5%8E%9F%E7%90%86/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="/null" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2018/01/04/linux%E4%B8%8A%E5%A4%9A%E5%8F%B0%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B9%8B%E9%97%B4%E6%97%A0%E5%AF%86%E7%A0%81%E7%99%BB%E9%99%86%E4%BB%A5%E5%8F%8A%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93/"><img class="prev-cover" src="/null" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">Previous Post</div><div class="prev_info">多台服务器之间无密码登陆以及文件传输</div></div></a></div><div class="next-post pull-right"><a href="/2017/12/08/Wordvector/"><img class="next-cover" src="/null" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">Next Post</div><div class="next_info">word2vector笔记</div></div></a></div></nav></article></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2020 By 左左左左想</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><div class="js-pjax"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></div></body></html>

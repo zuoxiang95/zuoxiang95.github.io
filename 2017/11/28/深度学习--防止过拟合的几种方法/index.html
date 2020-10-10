@@ -1,0 +1,187 @@
+<!DOCTYPE html><html lang="zn-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>深度学习：防止过拟合的几种方法 | 秃头少年的boke</title><meta name="description" content="本博客仅为作者记录笔记之用，不免有很多细节不对之处。还望各位看官能够见谅，欢迎批评指正。  &amp;emsp;&amp;emsp;在机器学习和深度学习中，过拟合是一个十分常见的问题，一旦模型过拟合了，可能这个模型就无法适用于业务场景中了。所以为了降低产生过拟合的风险，机器学习中的大牛们提出了以下几种方法供大家使用：  引入正则化 Dropout 提前终止训练 增加样本量  &amp;emsp;&amp;emsp;本文将对这5"><meta name="author" content="左左左左想"><meta name="copyright" content="左左左左想"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2017/11/28/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0--%E9%98%B2%E6%AD%A2%E8%BF%87%E6%8B%9F%E5%90%88%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="深度学习：防止过拟合的几种方法"><meta property="og:url" content="http://example.com/2017/11/28/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0--%E9%98%B2%E6%AD%A2%E8%BF%87%E6%8B%9F%E5%90%88%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/"><meta property="og:site_name" content="秃头少年的boke"><meta property="og:description" content="本博客仅为作者记录笔记之用，不免有很多细节不对之处。还望各位看官能够见谅，欢迎批评指正。  &amp;emsp;&amp;emsp;在机器学习和深度学习中，过拟合是一个十分常见的问题，一旦模型过拟合了，可能这个模型就无法适用于业务场景中了。所以为了降低产生过拟合的风险，机器学习中的大牛们提出了以下几种方法供大家使用：  引入正则化 Dropout 提前终止训练 增加样本量  &amp;emsp;&amp;emsp;本文将对这5"><meta property="og:image" content="http://example.com/null"><meta property="article:published_time" content="2017-11-28T03:06:02.000Z"><meta property="article:modified_time" content="2017-11-28T03:06:02.000Z"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  bookmark: {
+    message_prev: 'Press',
+    message_next: 'to bookmark this page'
+  },
+  runtime: '',
+  date_suffix: {"one_hour":"Just","hours":"hours ago","day":"days ago"},
+  copyright: undefined,
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+    },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2017-11-28 11:06:02'
+}</script><noscript><style type="text/css">
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+  }
+}
+
+var autoChangeMode = 'false'
+var t = saveToLocal.get('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (saveToLocal.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/null" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">Articles</div><div class="length_num">12</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">Categories</div><div class="length_num">4</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%AD%A3%E5%88%99%E5%8C%96"><span class="toc-number">1.</span> <span class="toc-text">1. 正则化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Dropout"><span class="toc-number">2.</span> <span class="toc-text">2. Dropout</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%8F%90%E5%89%8D%E7%BB%88%E6%AD%A2"><span class="toc-number">3.</span> <span class="toc-text">3. 提前终止</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">4.</span> <span class="toc-text">参考文献</span></a></li></ol></div></div></div><header class="post-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">秃头少年的boke</a></span><span id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">深度学习：防止过拟合的几种方法</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2017-11-28T03:06:02.000Z" title="Created 2017-11-28 11:06:02">2017-11-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2017-11-28T03:06:02.000Z" title="Updated 2017-11-28 11:06:02">2017-11-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><hr>
+<p>本博客仅为作者记录笔记之用，不免有很多细节不对之处。还望各位看官能够见谅，欢迎批评指正。</p>
+<hr>
+<p>&emsp;&emsp;在机器学习和深度学习中，过拟合是一个十分常见的问题，一旦模型过拟合了，可能这个模型就无法适用于业务场景中了。所以为了降低产生过拟合的风险，机器学习中的大牛们提出了以下几种方法供大家使用：</p>
+<ol>
+<li><strong>引入正则化</strong></li>
+<li><strong>Dropout</strong></li>
+<li><strong>提前终止训练</strong></li>
+<li><strong>增加样本量</strong></li>
+</ol>
+<p>&emsp;&emsp;本文将对这5种方法进行简单的讲解分析。</p>
+<h3 id="1-正则化"><a href="#1-正则化" class="headerlink" title="1. 正则化"></a>1. 正则化</h3><p>&emsp;&emsp;正则化的思想十分简单明了。由于模型过拟合极有可能是因为我们的模型过于复杂。因此，我们需要让我们的模型在训练的时候，在对损失函数进行最小化的同时，也需要让对参数添加限制，这个限制也就是正则化惩罚项。</p>
+<p>&emsp;&emsp;假设我们模型的损失函数为</p>
+<center>$C(x)={1\over2}\sum_{i=1}^n(f(x)-y_i)^2$</center>
+
+<p>加入正则项 $L$ 后，损失函数为</p>
+<center>$C(x)={1\over2}\sum_{i=1}^n(f(x)-y_i)^2+\lambda L$</center>
+
+<p>常用的正则化有两种：</p>
+<ul>
+<li><p><strong>L1正则</strong>：</p>
+<p>L1正则项的表达式为：</p>
+<center>$L\_1=\sum\_{i=1}^k||w\_i||\_1$</center>
+
+<p>其中w代表模型的参数，k代表模型参数的个数。</p>
+</li>
+<li><p><strong>L2正则</strong></p>
+<p>L2正则项的表达式为：</p>
+<center>$$L\_1=\sum\_{i=1}^k||w\_i||\_2^2$$</center>
+其中w代表模型的参数，k代表模型参数的个数。
+
+</li>
+</ul>
+<p>&emsp;&emsp;L1正则与L2正则的思想就是不能够一味的去减小损失函数，你还得考虑到模型的复杂性，通过限制参数的大小，来限制其产生较为简单的模型，这样就可以降低产生过拟合的风险。<br>&emsp;&emsp;它们的区别在于L1更容易得到稀疏解。为什么呢？我们先看看一个直观的例子：</p>
+<center>![这里写图片描述](http://img.blog.csdn.net/20170902090623714?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvTGVmdF9UaGluaw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)</center>
+&emsp;&emsp;假设我们模型只有 $w_1,w_2$ 两个参数，上图中左图中黑色的正方形是L1正则项的等值线，而彩色的圆圈是模型损失的等值线；右图中黑色圆圈是L2正则项的等值线，彩色圆圈是同样模型损失的等值线。因为我们引入正则项之后，我们要在模型损失和正则化损失之间折中，因此我们去的点是正则项损失的等值线和模型损失的等值线相交处。通过上图我们可以观察到，使用L1正则项时，两者相交点常在坐标轴上，也就是 $w_1,w_2$ 中常会出现0；而L2正则项与等值线常相交于象限内，也即为  $w_1,w_2$ 非0。因此L1正则项时更容易得到稀疏解的。
+&emsp;&emsp;而使用L1正则项的另一个好处是：由于L1正则项求解参数时更容易得到稀疏解，也就意味着求出的参数中含有0较多。因此它自动帮你选择了模型所需要的特征。L1正则化的学习方式是一种嵌入式特征学习方式，它选取特征和模型训练时一起进行的。
+
+<h3 id="2-Dropout"><a href="#2-Dropout" class="headerlink" title="2. Dropout"></a>2. Dropout</h3><p>&emsp;&emsp;Dropout是在深度学习中降低过拟合风险的常见方法，它是由大牛Hinton老爷子提出的。老爷子认为在神经网络产生过拟合主要是因为神经元之间的协同作用产生的。因此老爷子在神经网络进行训练的时候，让部分神经元失活，这样就阻断了部分神经元之间的协同作用，从而强制要求一个神经元和随机挑选出的神经元共同进行工作，减轻了部分神经元之间的联合适应性。<br>&emsp;&emsp;Dropout的具体流程如下：</p>
+<ol>
+<li>对 $l$ 层第 $j$ 个神经元产生一个随机数 $r_j^{(l)}\sim Bernouli(p)$</li>
+<li>将 $l$ 层第 $j$ 个神经元的输入乘上产生的随机数作为这个神经元新的输入：$x_j^{(l)*}=x_j^{(l)}*r_j^{(l)}$</li>
+<li>此时第 $l$ 层第 $j$ 个神经元的输出为：<center>$y\_j^{l+1}=f(\sum\_{j=1}^k (w\_j^{l+1}\*x\_j^{(l)\*}+b^{(l+1)}))$</center>
+其中，k为第l层神经元的个数，f为该神经元的激活函数，b为偏置，w为权重向量。
+
+</li>
+</ol>
+<p>&emsp;&emsp;<strong><em>注意</em></strong>：当我们采用了Dropout之后再训练结束之后，应当将网络的权重乘上概率p得到测试网络的权重，或者可以在训练时，将样本乘上 $1\over p$。</p>
+<h3 id="3-提前终止"><a href="#3-提前终止" class="headerlink" title="3. 提前终止"></a>3. 提前终止</h3><p>&emsp;&emsp;在对模型进行训练时，我们可以将我们的数据集分为三个部分，训练集、验证集、测试集。我们在训练的过程中，可以每隔一定量的step，使用验证集对训练的模型进行预测，一般来说，模型在训练集和验证集的损失变化如下图所示：</p>
+<center>![这里写图片描述](http://img.blog.csdn.net/20170902220608138?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvTGVmdF9UaGluaw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)</center>
+可以看出，模型在验证集上的误差在一开始是随着训练集的误差的下降而下降的。当超过一定训练步数后，模型在训练集上的误差虽然还在下降，但是在验证集上的误差却不在下降了。此时我们的模型就过拟合了。因此我们可以观察我们训练模型在验证集上的误差，一旦当验证集的误差不再下降时，我们就可以提前终止我们训练的模型。
+### 4. 增加样本量
+&emsp;&emsp;在实际的项目中，你会发现，上面讲述的那些技巧虽然都可以减轻过拟合的风险，但是却都比不上增加样本量来的更实在。为什么增加样本可以减轻过拟合的风险呢？这个要从过拟合是啥来说。过拟合可以理解为我们的模型对样本量学习的太好了，把一些样本的特殊的特征当做是所有样本都具有的特征。举个简单的例子，当我们模型去训练如何判断一个东西是不是叶子时，我们样本中叶子如果都是锯齿状的话，如果模型产生过拟合了，会认为叶子都是锯齿状的，而不是锯齿状的就不是叶子了。如果此时我们把不是锯齿状的叶子数据增加进来，此时我们的模型就不会再过拟合了。因此其实上述的那些技巧虽然有用，但是在实际项目中，你会发现，其实大多数情况都比不上增加样本数据来的实在。
+
+<hr>
+<p>下面顺便介绍一下深度学习中一个比较厉害的trick：Batch Normalization</p>
+<p>&emsp;&emsp;BN是15年提出的用于减轻过拟合风险的一种方法，现在这个算法被大量的引用于各种网络。事实证明该方法在加快模型的收敛速度，提高模型的泛化能力。<br>&emsp;&emsp;那什么是BN呢？顾名思义，BN就是批正则化。由于我们现在在对神经网络进行优化求解时，通常是使用SGD。每次输入一个mini-batch的数据到神经网络中。在某一层输入数据到神经元之前，对神经元的输入做一个归一化的处理，即将数据归一化为均值为0，方差为1。</p>
+<center>$\hat{x}^{(k)}={x^{(k)}-E(x^{(k)})\over \sqrt{Var(x^{(k)})}}$</center>
+其中，$E(x^{(k)})$ 代表了这个mini-batch数据的均值，$Var(x^{(k)})$ 代表了这个mini-batch数据的方差。在BN中还存在着一步叫做变换重构：
+<center>$y^{(k)}=\gamma\hat{x}^{(k)}+\beta$</center>
+其中，$\gamma$ 和 $\beta$ 为模型学习的参数，当$\gamma=\sqrt{Var(x^{(k)})}$、$\beta=E(x^{(k)})$ 时，此时神经元的输入在经过BN层之后还是原始的输入。它主要就是让我们的神经网络在归一化后能够一定程度上的还原成原始输入。这样做我们的模型就既可以将输入归一化，也可以使用原始的输入作为模型的输入，这样模型的容纳能力就会有很大的提升。
+&emsp;&emsp;有人可能要问，那BN到底为什么能够加快模型的收敛速度，提高模型的泛化能力？
+
+
+
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><p>1 <a target="_blank" rel="noopener" href="http://blog.csdn.net/stdcoutzyx/article/details/49022443"> 理解dropout</a><br>2  <a target="_blank" rel="noopener" href="http://blog.csdn.net/hjimce/article/details/50413257">深度学习（二十二）Dropout浅层理解与实现</a><br>3 “西瓜书”机器学习 ：周志华<br>4 <a target="_blank" rel="noopener" href="http://blog.csdn.net/hjimce/article/details/50866313"> 深度学习（二十九）Batch Normalization 学习笔记</a></p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">左左左左想</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://example.com/2017/11/28/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0--%E9%98%B2%E6%AD%A2%E8%BF%87%E6%8B%9F%E5%90%88%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/">http://example.com/2017/11/28/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0--%E9%98%B2%E6%AD%A2%E8%BF%87%E6%8B%9F%E5%90%88%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="/null" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/2017/12/08/Wordvector/"><img class="prev-cover" src="/null" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">Previous Post</div><div class="prev_info">word2vector笔记</div></div></a></div></nav></article></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2020 By 左左左左想</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><div class="js-pjax"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></div></body></html>
