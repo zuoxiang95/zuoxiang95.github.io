@@ -1,0 +1,174 @@
+<!DOCTYPE html><html lang="zn-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>秃头少年的boke | 秃头少年的boke</title><meta name="description" content="异常检测算法-Time2GraphTime2Graph提出了一种可解释的时间序列表示学习的方法 在Time2Graph里，寻找出最优的shapelet时，需要去计算shapelet与时序样本之间的距离。欧式距离只能度量两个长度相等的序列，而无法适用于长度不等的序列。因此我们需要使用一种可以计算变长序列之间距离的方法，因此在了解Time2Graph之前我们需要先学习一下DTW（Dynamic Tim"><meta name="author" content="左左左左想"><meta name="copyright" content="左左左左想"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2021/03/07/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95-Time2Graph/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="秃头少年的boke"><meta property="og:url" content="http://example.com/2021/03/07/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95-Time2Graph/"><meta property="og:site_name" content="秃头少年的boke"><meta property="og:description" content="异常检测算法-Time2GraphTime2Graph提出了一种可解释的时间序列表示学习的方法 在Time2Graph里，寻找出最优的shapelet时，需要去计算shapelet与时序样本之间的距离。欧式距离只能度量两个长度相等的序列，而无法适用于长度不等的序列。因此我们需要使用一种可以计算变长序列之间距离的方法，因此在了解Time2Graph之前我们需要先学习一下DTW（Dynamic Tim"><meta property="og:image" content="http://example.com/null"><meta property="article:published_time" content="2021-03-07T08:15:41.457Z"><meta property="article:modified_time" content="2021-03-24T10:15:34.812Z"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.2.0',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  bookmark: {
+    message_prev: 'Press',
+    message_next: 'to bookmark this page'
+  },
+  runtime: '',
+  date_suffix: {"one_hour":"Just","hours":"hours ago","day":"days ago"},
+  copyright: undefined,
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+    const now = new Date()
+    const expiryDay = ttl * 86400000
+    const item = {
+      value: value,
+      expiry: now.getTime() + expiryDay,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+    },
+
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2021-03-24 18:15:34'
+}</script><noscript><style type="text/css">
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+  }
+}
+
+var autoChangeMode = 'false'
+var t = saveToLocal.get('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (saveToLocal.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><meta name="generator" content="Hexo 5.2.0"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/null" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">Articles</div><div class="length_num">16</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">Categories</div><div class="length_num">6</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95-Time2Graph"><span class="toc-number">1.</span> <span class="toc-text">异常检测算法-Time2Graph</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#DTW%E7%AE%97%E6%B3%95"><span class="toc-number">1.1.</span> <span class="toc-text">DTW算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Time2Graph"><span class="toc-number">1.2.</span> <span class="toc-text">Time2Graph</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#shapelet%E7%9A%84%E6%8F%90%E5%8F%96"><span class="toc-number">1.2.1.</span> <span class="toc-text">shapelet的提取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Shapelet%E8%BF%9B%E5%8C%96%E5%9B%BE"><span class="toc-number">1.2.2.</span> <span class="toc-text">Shapelet进化图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A8%E5%BE%81%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.2.3.</span> <span class="toc-text">表征学习</span></a></li></ol></li></ol></li></ol></div></div></div><header class="post-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">秃头少年的boke</a></span><span id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">No title</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2021-03-07T08:15:41.457Z" title="Created 2021-03-07 16:15:41">2021-03-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2021-03-24T10:15:34.812Z" title="Updated 2021-03-24 18:15:34">2021-03-24</time></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h1 id="异常检测算法-Time2Graph"><a href="#异常检测算法-Time2Graph" class="headerlink" title="异常检测算法-Time2Graph"></a>异常检测算法-Time2Graph</h1><p>Time2Graph提出了一种可解释的时间序列表示学习的方法</p>
+<p>在Time2Graph里，寻找出最优的shapelet时，需要去计算shapelet与时序样本之间的距离。欧式距离只能度量两个长度相等的序列，而无法适用于长度不等的序列。因此我们需要使用一种可以计算变长序列之间距离的方法，因此在了解Time2Graph之前我们需要先学习一下DTW（Dynamic Time Warping）。</p>
+<h2 id="DTW算法"><a href="#DTW算法" class="headerlink" title="DTW算法"></a>DTW算法</h2><p>DTW最开始运用于比较两段语音之间的相似性，假设我们用数字表示音调高低，例如某个单词发音的音调为1-3-2-4。现在有两个人说这个单词，A在前半部分拖长，其发音为1-1-3-3-2-4；B在后半部分拖长，其发音为1-3-2-2-4-4。这两种发音在我们的认知里相似性应该是很高的（都是同一个单词的发音），但是如果我们使用欧式距离来计算两种发音的距离：</p>
+<p>$dist(A,B)=|A(1)-B(1)|+|A(2)-B(2)|+|A(3)-B(3)|+|A(4)-B(4)|+|A(5)-B(5)|+|A(6)-B(6)|$</p>
+<p>$=|1-1|+|1-3|+|3-2|+|3-2|+|2-4|+|4-4|$</p>
+<p>$=0+2+1+1+2+0=6$</p>
+<p>DTW算法允许一个时序中的点可以与另外一个时序中多个点对应，因此即使两个序列长度不一致，DTW算法也可以计算两者的距离。对于上述发音的例子，DTW的对应关系可以如下图所示：</p>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEly1gobdmgbrpej30ai0dk3z8.jpg" alt="v2-72ba59b88c66f2d2f988af6e0278286a_1440w.jpg"></p>
+<p>因此在DTW的对应关系下，A发音与B发音的距离应该为</p>
+<p>$dist(A,B)=|A(1)-B(1)|+|A(2)-B(1)|+|A(3)-B(2)|+|A(4)-B(2)|+|A(5)-B(3)|+|A(5)-B(4)|+|A(6)-B(5)|+|A(6)-B(6)|$</p>
+<p>$=|1-1|+|1-1|+|3-3|+|3-3|+|2-2|+|2-2|+|4-4|+|4-4|=0$</p>
+<p>我们把<strong>一个序列的一个时刻的点与另外一个序列中多个连续时刻点对应</strong>的做法称之为时间规整（Time Warping）。</p>
+<p>我们使用一个6*6的矩阵M来表示序列A与序列B之间的距离，$M(i,j)$代表$A_i$与$B_j$之间的距离</p>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEly1gobef71ietj30ad0an0ta.jpg" alt="v2-cb7847982b803b42c745cab86489ee71_1440w.jpg"></p>
+<p>上图中，对角线的灰色虚线代表了欧式距离，而红色箭头代表了DTW。</p>
+<p>总结下来，DTW算法流程如下所示：</p>
+<ol>
+<li>构建两个序列的距离矩阵；</li>
+<li>从矩阵的左上角到右下角，找到距离之和最短的路径；</li>
+</ol>
+<p>在DTW算法中，路径的上一个元素必须是下列三种之一：</p>
+<ol>
+<li>当前元素相邻左边的元素(i,j-1)；</li>
+<li>当前元素相邻上方的元素(i-1,j)；</li>
+<li>当前元素相邻左上角的元素(i-1,j-1)；</li>
+</ol>
+<p>DTW的实现主要是用动态规划来做，它的状态转移方程为：$f(i,j)=Min(f(i-1,j-1), f(i-1,j), f(i,j-1))+M(i,j)$</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">solution</span>(<span class="params">matrix</span>):</span></span><br><span class="line">    row_nums = len(matrix)</span><br><span class="line">    col_nums = len(matrix[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    result = np.zeros([row_nums, col_nums])</span><br><span class="line">    result[<span class="number">0</span>][<span class="number">0</span>] = matrix[<span class="number">0</span>][<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, row_nums):</span><br><span class="line">        result[i][<span class="number">0</span>] = result[i - <span class="number">1</span>][<span class="number">0</span>] + matrix[i][<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">1</span>, col_nums):</span><br><span class="line">        result[<span class="number">0</span>][j] = result[<span class="number">0</span>][j - <span class="number">1</span>] + matrix[<span class="number">0</span>][j]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, row_nums):</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">1</span>, col_nums):</span><br><span class="line">            result[i][j] = min([result[i - <span class="number">1</span>][j], result[i][j - <span class="number">1</span>], result[i - <span class="number">1</span>][j - <span class="number">1</span>]]) + matrix[i][j]</span><br><span class="line">    <span class="keyword">return</span> result[<span class="number">-1</span>][<span class="number">-1</span>]</span><br></pre></td></tr></table></figure>
+
+<h2 id="Time2Graph"><a href="#Time2Graph" class="headerlink" title="Time2Graph"></a>Time2Graph</h2><p>Time2Graph主要提出了一种可解释的高效时间序列建模方法，也就是如何在一段时间序列中提取出具有代表性的特征片段。通过提取的shapelet来为分类任务服务，并且shapelet在时序分类任务中具有着良好的可解释性。对于传统的基于shapelet的时序方法，它们有一个共同的缺点就是忽略了shapelet在不同时间序列的动态性。作者基于此来设计了动态的Time-aware shapelet，定义了shapelet evolution graph来获取shapelet在时间维度的动态变化。</p>
+<h3 id="shapelet的提取"><a href="#shapelet的提取" class="headerlink" title="shapelet的提取"></a>shapelet的提取</h3><p>文章定义了两个因子，来衡量在不同阶段shapelet的影响力。第一个是局部因子$w_n$，它主要用于在衡量shapelet与时序片段s之间的距离时，控制shapelet的每一个元素的权重。因此，shapelet与时序片段s的距离为：</p>
+<p>$d(v,s|w)=\tau(v,s|a^*,w)=(\sum^p_{k=1}w_{a^<em>_1(k)}</em>(w_{a^<em><em>1(k)}-s</em>{a^</em>_2(k)})^2)^\frac 12$</p>
+<p>其中$a^*$是通过DWT算法找到的最佳对齐方式。</p>
+<p>第二个是全局因子，用于衡量同一个shapelet对于不同时序片段的重要程度，因此shapelet和整个时序的距离为：</p>
+<p>$D(v,t|w,u)=\underset{1\le{k}\le{m}}{min}u_k*d(v,s|w)$</p>
+<p>其中t是整体的时间序列被划分为m个时序片段的集合，$t={s_1,…,s_m}$。通过给定一个分类任务，建立一个监督学习方法，从候选的shapelet中学习出最佳的shapelet以及参数w和u，shapelet候选集生成算法如下所示：</p>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEly1gotyctvpt3j30cy0aq75m.jpg" alt="1616490537158"></p>
+<p>当我们需要K个shapelet作为候选集时，算法首选选取时序片段中距离集合T中心最近的子序列作为候选集的第一个shapelet，然后再从剩下的集合中挑选离第一个shapelet距离最远的作为第二个shapelet，重复以上步骤，直到挑选出K个候选集算法结束。</p>
+<p>而当得到了shapelet的候选集之后，对于每一个shapelet，我们可以通过最小化目标函数：</p>
+<p>$L=-g(S_{pos}(v,T),S_{neg}(v,T))+\lambda||w||+\epsilon||u||$</p>
+<p>获取到最优的参数w和u，再选出目标函数最小的前K个shapelet。</p>
+<h3 id="Shapelet进化图"><a href="#Shapelet进化图" class="headerlink" title="Shapelet进化图"></a>Shapelet进化图</h3><p>在获取到了Shapelet之后，为了刻画Shapelet到动态演化，通过构建一个Shapelet evolution graph，图的定义如下所示：</p>
+<blockquote>
+<p> Shapelet evolution graph是一个带权重的有向图G=(V,E)，其中V是由K个shapelet组成，每条边$e_{ij}\in{E}$的权重$w_{ij}$代表了两个shapelet $v_i$和$v_j$被分配给连个相邻时序片段的联合概率。</p>
+</blockquote>
+<p>图的构建算法入下图所示：</p>
+<p><img src="https://tva1.sinaimg.cn/large/008eGmZEly1gov19wkpmnj30cq0bkmyp.jpg" alt="1616570730348"></p>
+<p>图首先会将筛选出的K个Shapelet作为图的顶点，然后遍历时序片段$s_i$，计算每个shapelet与时序片段$s_i$的距离，如果shapelet和时序片段的距离小于我们设定的阈值$\delta$，那么我们将这个shapelet分配给这个时序片段。通过归一化的方式，将这个时序片段到各个shapelet距离转化为概率：</p>
+<p>$p_{i,j}=\frac {max(d_{i,<em>}(v_{s</em>},s_i))-d_{i,j}(v_{i,j},s_i)}{max(d_{i,<em>}(v_{s</em>},s_i))-min(d_{i,<em>}(v_{s</em>},s_i))}$</p>
+<p>这时我们会得到每一个时序片段所属的shapelet的集合，以及每一个shapelet的概率值$p_{i,j}$，对于连续的两个时序片段，我们将对片段1和片段2所属的shapelet进行连接，边的权重为两个shapelet的概率的乘积$w_{i,j}=p_{i,j}*p_{i+1,k}$。最后我们将重复的边做合并，这样就能得到了Shapelet evolution graph</p>
+<h3 id="表征学习"><a href="#表征学习" class="headerlink" title="表征学习"></a>表征学习</h3><p>在最后，通过使用Deep Walk算法来提取每个shapelet的特征表示，通过对于时序$t={s_1,⋯,s_m}$即对应的Shapelet ${v_{1,∗},⋯,v_{m,∗}}$和对应的概率${p_{1,∗},⋯,p_{m,∗}}$，每个Shaplet $v_{i,j}$的特征向量记为$μ(v_{i,j})$。片段$s_i$对应的嵌入向量为对应的Shapelet嵌入向量与对应的概率值加权求和：</p>
+<p>$\Phi_i=\sum_jp_{i,j}*μ(v_{i,j}), 1\le{i}\le{m}$</p>
+<p>再得到了每一个时序片段的特征向量后，我们可以通过训练一个分类器来判断这个时序片段是否异常。</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">左左左左想</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://example.com/2021/03/07/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95-Time2Graph/">http://example.com/2021/03/07/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95-Time2Graph/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="/null" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2021/02/19/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95-LOF%EF%BC%88Local%20Outlie%20Factor%EF%BC%89/"><img class="next-cover" src="/null" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">Next Post</div><div class="next_info">异常检测算法-LOF（Local Outlie Factor）</div></div></a></div></nav></article></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By 左左左左想</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><div class="js-pjax"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><canvas class="fireworks"></canvas><script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script src="/js/third-party/fireworks.js"></script></div></body></html>
